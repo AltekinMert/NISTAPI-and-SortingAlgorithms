@@ -10,7 +10,7 @@ public class Main {
     public static void main(String[] args){
         String baseUrl = "https://services.nvd.nist.gov/rest/json/cves/2.0";
         int resultsPerPage = 2000;
-        int totalEntries = 4000;
+        int totalEntries = 2000;
 
         Gson gson = new Gson();
 
@@ -36,7 +36,10 @@ public class Main {
                 CVEData cveData = gson.fromJson(jsonResponse, CVEData.class);
 
                 // Access and process the parsed data
-                System.out.println("CVE ID: " + cveData.getVulnerabilities().get(1999).getCve().getId());
+                System.out.println("CVE ID: " + cveData.vulnerabilities.get(2).cve.id);
+                System.out.println("baseScore: "+cveData.vulnerabilities.get(2).cve.metrics.cvssMetricV2.get(0).cvssData.baseScore);
+                //System.out.println("ImpactScore: "+cveData.vulnerabilities.get(0).cve.metrics.cvssMetricV2.get(0).impactScore);
+                //System.out.println("ExploitabilityScore: "+cveData.vulnerabilities.get(0).cve.metrics.cvssMetricV2.get(0).exploitabilityScore);
                 // Access other fields as needed
 
             } catch (IOException e) {
