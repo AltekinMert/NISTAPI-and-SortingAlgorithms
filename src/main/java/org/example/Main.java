@@ -7,17 +7,20 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 import com.google.gson.Gson;
 public class Main {
     public static void mergeSort(List<CVEVulnerability> list) {
+        long startTime = System.nanoTime();
         if (list == null || list.size() <= 1) {
             return; // Nothing to sort
         }
-
         List<CVEVulnerability> temp = new ArrayList<>(list);
         mergeSort(list, temp, 0, list.size() - 1);
+        long endTime = System.nanoTime();
+        long executionTime = endTime -startTime;
+        System.out.println("Merge Sort Execution Time: " + TimeUnit.NANOSECONDS.toMillis(executionTime) + " Miliseconds");
     }
     private static void mergeSort(List<CVEVulnerability> list, List<CVEVulnerability> temp, int left, int right) {
         if (left < right) {
@@ -61,13 +64,52 @@ public class Main {
         }
     }
 
+    public static void quickSort(List<CVEVulnerability> list) {
+        long startTime = System.nanoTime();
+        if (list == null || list.size() <= 1) {
+            return; // Nothing to sort
+        }
+        quickSort(list, 0, list.size() - 1);
+        long endTime = System.nanoTime();
+        long executionTime = endTime - startTime;
+        System.out.println("Quick Sort Execution Time: " + TimeUnit.NANOSECONDS.toMillis(executionTime) + " Milliseconds");
+    }
+    private static void quickSort(List<CVEVulnerability> list, int low, int high) {
+        if (low < high) {
+            int pi = partition(list, low, high);
+
+            quickSort(list, low, pi - 1);
+            quickSort(list, pi + 1, high);
+        }
+    }
+    private static int partition(List<CVEVulnerability> list, int low, int high) {
+        CVEVulnerability pivot = list.get(high);
+        int i = low - 1;
+
+        for (int j = low; j < high; j++) {
+            if (list.get(j).compareTo(pivot) < 0) {
+                i++;
+
+                CVEVulnerability temp = list.get(i);
+                list.set(i, list.get(j));
+                list.set(j, temp);
+            }
+        }
+
+        CVEVulnerability temp = list.get(i + 1);
+        list.set(i + 1, list.get(high));
+        list.set(high, temp);
+
+        return i + 1;
+    }
 
     public static void main(String[] args){
         String baseUrl = "https://services.nvd.nist.gov/rest/json/cves/2.0";
+
         List<CVEVulnerability> EveryEntry = new ArrayList<>();
         int resultsPerPage = 2000;
-        int totalEntries = 4000;
-        int a = 0;
+        int totalEntries = 2000;
+        int a = 1;
         double baseScore = 0;
         double impactScore = 0;
         double exploitabilityScore = 0;
@@ -76,7 +118,7 @@ public class Main {
         for (int startIndex = 0; startIndex < totalEntries; startIndex += resultsPerPage) {
             try {
                 // Create the URL for the current page
-                String url = baseUrl + "/?resultsPerPage=" + resultsPerPage + "&startIndex=" + startIndex;
+                String url = baseUrl + "/?resultsPerPage=" + 2000+"&startIndex="+startIndex;
                 HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
                 connection.setRequestMethod("GET");
 
@@ -92,27 +134,31 @@ public class Main {
 
                 // Parse the JSON response into Java objects
                 String jsonResponse = response.toString();
+
                 CVEData cveData = gson.fromJson(jsonResponse, CVEData.class);
 
                 EveryEntry.addAll(cveData.vulnerabilities);
 
                 // Access and process the parsed data
-                System.out.println("CVE ID: " + cveData.vulnerabilities.get(2).cve.id);
-                System.out.println("baseScore: "+cveData.vulnerabilities.get(2).cve.metrics.cvssMetricV2.get(0).cvssData.baseScore);
-                System.out.println("ImpactScore: "+cveData.vulnerabilities.get(2).cve.metrics.cvssMetricV2.get(0).impactScore);
-                System.out.println("ExploitabilityScore: "+cveData.vulnerabilities.get(2).cve.metrics.cvssMetricV2.get(0).exploitabilityScore);
+                System.out.println("CVE ID: " + cveData.vulnerabilities.get(0).cve.id);
+                System.out.println("baseScore: "+cveData.vulnerabilities.get(0).cve.metrics.cvssMetricV2.get(0).cvssData.baseScore);
+                System.out.println("ImpactScore: "+cveData.vulnerabilities.get(0).cve.metrics.cvssMetricV2.get(0).impactScore);
+                System.out.println("ExploitabilityScore: "+cveData.vulnerabilities.get(0).cve.metrics.cvssMetricV2.get(0).exploitabilityScore);
                 // Access other fields as needed
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
-        long startTime = System.nanoTime();
-        mergeSort(EveryEntry);
-        long endTime = System.nanoTime();
-        long executionTime = endTime -startTime;
-        System.out.println("Merge Sort Execution Time: " + executionTime+ "nanoseconds");
+
+
+
+        //mergeSort(EveryEntry);
+        //quickSort(EveryEntry);
+
+
+
+
         Iterator<CVEVulnerability> iterator = EveryEntry.iterator();
         while (iterator.hasNext()) {
             CVEVulnerability vulnerability = iterator.next();
@@ -125,7 +171,7 @@ public class Main {
             if(vulnerability.cve.metrics.cvssMetricV2 != null){
                 exploitabilityScore = vulnerability.cve.metrics.cvssMetricV2.get(0).exploitabilityScore;
             }
-            System.out.println("baseScore: " + baseScore+ ", impactScore: " + impactScore + ", exploitabilityScore: "+exploitabilityScore+", CVEId: "+ vulnerability.cve.id);
+            System.out.println("baseScore: " + baseScore+ ", impactScore: " + impactScore + ", exploitabilityScore: "+exploitabilityScore+", CVEId: "+ vulnerability.cve.id+"-Count : "+a);
             a++;
         }
     }
